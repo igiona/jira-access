@@ -4,6 +4,7 @@
 # Simple class to execute Jira JQL queries via REST API using a Jira token as authentication method.
 # It requires the "requests" module to be installed
 
+import sys
 import requests
 from BasicAuth import BasicAuth
 from BearerAuth import BearerAuth
@@ -11,6 +12,7 @@ from BearerAuth import BearerAuth
 # accessToken : string containing the Jira access token
 # jiraBaseUrl : Jira server URL (e.g. "https://jira.myhost.com")
 class JiraQueryExecutor:
+    _maxResultsPerRequest = 100
 
     def __init__(self, auth, jiraBaseUrl):
         self._apiBaseUrl = f"{jiraBaseUrl}/rest/api/latest"
@@ -26,25 +28,19 @@ class JiraQueryExecutor:
     
     # query: the JQL to be executed
     # defaultOrder: if set, the results will be ordered by the updated field in descending order
-    # maxResults: if set, the integer value is used to limit the number of results of the query
-    def execute_jql_query(self, query, defaultOrder = True, maxResults = None):
+    def execute_jql_query(self, query, defaultOrder = True):
         def execute_http_request(query, startAt, maxResults):
             params = {
                 'jql': query,
             }
 
-            if maxResults != None:
-                params['maxResults'] = str(maxResults)
-            if startAt == None:
-                startAt = 0
-            
+            params['maxResults'] = str(maxResults)
             params['startAt'] = str(startAt)
             
             url = self._apiBaseUrl + "/search"
             #print(f"GET: {url} with {params}")
             #headers = { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Atlassian-Token': 'nocheck' }
             headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
-            #auth = HTTPBasicAuth(user, passwd)
             r = requests.get(url, params=params, headers=headers, auth=self._auth, timeout=120)
             #print(f"GET: {r.url}")
 
@@ -57,7 +53,20 @@ class JiraQueryExecutor:
         if defaultOrder:
             query += " ORDER BY updated DESC"
         #print(query)
-        json = execute_http_request(query, 0, maxResults)
-        assert len(json["issues"]) == int(json["total"]), f'Number of results mismatch: {len(json["issues"])} vs {json["total"]}'
         
-        return json
+        total = sys.maxsize
+        issues = []
+        while len(issues) < total:
+            json_partial = execute_http_request(query, len(issues), self._maxResultsPerRequest)
+            retrievedIssuesNumber = len(json_partial["issues"])
+            total = int(json_partial["total"])
+
+            if retrievedIssuesNumber != 0:
+                issues.extend(json_partial["issues"])
+            else:
+                if total > 0:
+                    print(f"WARNING: the last execution didn't return any result startAt={len(issues)} of {total}")
+                break
+
+        assert len(issues) == total, f'Number of results mismatch retrieved {len(issues)} of {total}'
+        return issues

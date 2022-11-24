@@ -1,3 +1,9 @@
+# setuptools_scm
+_version.py
+
+# virtualenv
+venv*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

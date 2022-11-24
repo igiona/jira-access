@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm[toml]"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jira_access"
+description = "A simple python helper for the JIRA REST API."
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["jira", "xray"]
+license = { text = "MIT License" }
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = ["requests"]
+dynamic = ["version"]
+
+[tool.setuptools.packages]
+find = {}
+
+[project.optional-dependencies]
+dev = [
+  # linters:
+  "flake8<=5.0.4",                # TODO: Bump version when bug in 6.0.0 is fixed
+  "flake8-bandit",
+  "flake8-bugbear",
+  "flake8-builtins",
+  "flake8-coding",
+  "flake8-commas",
+  "flake8-comprehensions",
+  "flake8-docstrings",
+  "flake8-expression-complexity",
+  "flake8-import-order",
+  "flake8-isort",
+  "flake8-pep3101",
+  "flake8-plugin-utils",
+  "flake8-polyfill",
+  "flake8-pytest",
+  "flake8-pytest-style",
+  "flake8-requirements",
+  "flake8-simplify",
+  "flake8-use-fstring",
+  "pep8-naming",
+  "pylint",
+  # formatters:
+  "isort",
+  "yapf",
+  # unit-tests:
+  "pytest",
+  "pytest-dotenv",
+  # updater:
+  "pip-tools",
+  # git:
+  "pre-commit",
+  # type-checker:
+  "mypy",
+  "types-requests",
+]
+[tool.setuptools_scm]
+write_to = "jira_access/_version.py"
+
+[tool.isort]
+profile = "google"
+skip = ["venv", "venv3.7", "venv3.8", "venv3.9", "venv3.10", "venv3.11", 'env', ".tox"]
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 120
+split_before_logical_operator = true
+split_before_arithmetic_operator = true
+split_before_dict_set_generator = true
+
+[tool.yapfignore]
+ignore_patterns = ["venv/*", "venv3.7/*", "venv3.8/*", "venv3.9/*", "venv3.10/*", "venv3.11/*", "env/*", ".tox/*"]
+
+[tool.pytest.ini_options]
+env_files = [".env"]

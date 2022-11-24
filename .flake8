@@ -1,0 +1,24 @@
+[flake8]
+ignore = ANN101, ANN001, ANN002, ANN003, C101, C812, 
+         D100, D101, D102, D103, D104, D105, D106, D107, D203, D400, D401, 
+         E124, E203, I100, I101, I201, S101, S106, SIM105, SIM106, S604, W503, W504, 
+         # Most ignores are here since they conflict with the yapf coding style. 
+         # Add all rules with Dxxx in order to enforce docstrings anywhere
+max-line-length = 120
+max-expression-complexity = 8
+exclude = venv,
+          venv3.7,
+          venv3.8,
+          venv3.9,
+          venv3.10,
+          venv3.11,
+          .tox,
+          .git,
+          .mypy_cache,
+          .pytest_cache,
+          __pycache__,
+          env
+
+per-file-ignores =
+    # imported but unused
+    __init__.py: F401

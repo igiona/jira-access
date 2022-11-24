@@ -1,4 +1,3 @@
-
 # Author: Giona Imperatori
 #
 # Simple class to execute Jira JQL queries via REST API using a Jira token as authentication method.
@@ -6,9 +5,12 @@
 
 import json
 import sys
+
 import requests
-from BasicAuth import BasicAuth
-from BearerAuth import BearerAuth
+
+from jira_access.basic_auth import BasicAuth
+from jira_access.bearer_auth import BearerAuth
+
 
 # accessToken : string containing the Jira access token
 # jiraBaseUrl : Jira server URL (e.g. "https://jira.myhost.com")
@@ -26,10 +28,10 @@ class JiraQueryExecutor:
     @classmethod
     def from_mail_and_token(cls, mail, token, jiraBaseUrl):
         return cls(BasicAuth(mail, token), jiraBaseUrl)
-    
-    def _execute_http_get_request(self, params, apiAction):       
+
+    def _execute_http_get_request(self, params, apiAction):
         url = self._apiBaseUrl + apiAction
-        headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
         r = requests.get(url, params=params, headers=headers, auth=self._auth, timeout=120)
 
         if not r.ok:
@@ -38,9 +40,9 @@ class JiraQueryExecutor:
             r.raise_for_status()
         return r.json()
 
-    def _execute_http_put_request(self, params, body, apiAction):       
+    def _execute_http_put_request(self, params, body, apiAction):
         url = self._apiBaseUrl + apiAction
-        headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
         r = requests.put(url, params=params, data=json.dumps(body), headers=headers, auth=self._auth, timeout=120)
 
         if not r.ok:
@@ -50,7 +52,8 @@ class JiraQueryExecutor:
 
     # query: the JQL to be executed
     # defaultOrder: if set, the results will be ordered by the updated field in descending order
-    def execute_jql_query(self, query, defaultOrder = True):
+    def execute_jql_query(self, query, defaultOrder=True):
+
         def execute_http_search_request(query, startAt, maxResults):
             #API description: https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-get
             params = {
@@ -59,11 +62,11 @@ class JiraQueryExecutor:
             params['maxResults'] = str(maxResults)
             params['startAt'] = str(startAt)
             return self._execute_http_get_request(params, "/search")
-        
+
         if defaultOrder:
             query += " ORDER BY updated DESC"
         #print(query)
-        
+
         total = sys.maxsize
         issues = []
         while len(issues) < total:
@@ -81,19 +84,9 @@ class JiraQueryExecutor:
         assert len(issues) == total, f'Number of results mismatch retrieved {len(issues)} of {total}'
         return issues
 
-    def set_issue_field(self, issueKey, field, value, notifyUsers = True):
+    def set_issue_field(self, issueKey, field, value, notifyUsers=True):
         #API description: https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-put
 
-        params = {
-            'notifyUsers' : str(notifyUsers)
-        }
-        body = {
-            "update": {
-                field: [
-                    {
-                        "set": value
-                    }
-                ]
-            }
-        }
+        params = {'notifyUsers': str(notifyUsers)}
+        body = {"update": {field: [{"set": value}]}}
         return self._execute_http_put_request(params, body, f"/issue/{issueKey}")

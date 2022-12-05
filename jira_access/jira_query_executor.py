@@ -62,12 +62,14 @@ class JiraQueryExecutor(JiraClient):
         while len(issues) < total:
             json_partial = execute_http_search_request(query, len(issues), self._MAX_RESULTS_PER_REQUESTS)
 
-            assert isinstance(json_partial, dict), f"Received {json_partial=} but should be 'dict'"
-            assert isinstance(json_partial["issues"], list), f"Received {json_partial['issues']=} but should be 'list'"
+            assert isinstance(json_partial, dict), f"Received json_partial={json_partial} but should be 'dict'"
+            assert isinstance(json_partial["issues"],
+                              list), f"Received json_partial['issues']={json_partial['issues']} but should be 'list'"
 
             retrieved_issues_number = len(json_partial["issues"])
 
-            assert isinstance(json_partial["total"], int), f"Received {json_partial['total']=} but should be 'int'"
+            assert isinstance(json_partial["total"],
+                              int), f"Received json_partial['total']={json_partial['total']} but should be 'int'"
 
             total = int(json_partial["total"])
 

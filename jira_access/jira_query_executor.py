@@ -35,11 +35,12 @@ class JiraQueryExecutor(JiraClient):
     def from_mail_and_token(cls, mail: str, token: str, jira_base_url: str):
         return cls(BasicAuth(mail, token), jira_base_url)
 
-    def execute_jql_query(self, query: str, default_order: bool = True) -> list[JsonType]:
+    def execute_jql_query(self, query: str, fields: List[str] = None, default_order: bool = True) -> list[JsonType]:
         """Execute a jql query
 
         Args:
             query: the JQL to be executed
+            fields: list of the desired fields name as string. If None all fields will be returned
             default_order: if set, the results will be ordered by the updated field in descending order
 
         """
@@ -51,6 +52,8 @@ class JiraQueryExecutor(JiraClient):
                 "maxResults": str(max_results),
                 "startAt": str(start_at),
             }
+            if fields: 
+                params["fields"] = ",".join(fields)
             return self._execute_http_get_request("/search", params=params)
 
         if default_order:

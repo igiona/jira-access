@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import sys
+import os
+from typing import Optional
 
 from requests.auth import AuthBase
 
@@ -92,3 +94,24 @@ class JiraQueryExecutor(JiraClient):
         params: dict[str, str] = {"notifyUsers": str(notify_users)}
         body: Json = {"update": {field: [{"set": value}]}}
         return self._execute_http_put_request(data=body, api_action=f"/issue/{issue_key}", params=params)
+
+    def download_issue_attachment(self, object: JsonType, destination: str, filename: Optional[str] = None) -> str:
+        """Downloads the attachment of an issue and return the destination-file path
+
+        Args:
+            object: The "attachment" JSON object returned by a query-request
+            destination: the path to the directory in which the file will be download.
+            filename: if set, will be used as file name otherwise object["filename"] will be used
+        """
+        assert object != None, "The attachment object is invalid"
+        assert "id" in object, "The attachment has no id"
+        assert (filename or "filename" in object), "The attachment has no filename"
+        output_file = os.path.join(destination, filename or object["filename"])
+        response = self._execute_http_get_streamed_request(f"/attachment/content/{object['id']}")
+
+        with open(output_file, "wb") as file:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    file.write(chunk)
+        return output_file
+        

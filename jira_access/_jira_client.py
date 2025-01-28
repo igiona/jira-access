@@ -41,7 +41,27 @@ class JiraClient:
                 raise Exception(f"Error executing query '{params}'.\nError message: {r.json()}\nURL: {r.url}")
             r.raise_for_status()
         return r.json()
+    
+    def _execute_http_get_streamed_request(self,
+                                  api_action: str,
+                                  params: Optional[Mapping[str, str]] = None,
+                                  headers: Optional[Mapping[str, str]] = None,
+                                  stream: bool = False) -> requests.Response:
+        headers = headers or self._DEFAULT_HEADERS
+        url = self._api_url + api_action
+        r: requests.Response = requests.get(url,
+                                            params=params,
+                                            headers=headers,
+                                            auth=self._auth,
+                                            timeout=self._REQUEST_TIMEOUT_SEC,
+                                            stream=True)
 
+        if not r.ok:
+            if r.status_code == 400:
+                raise Exception(f"Error executing query '{params}'.\nError message: {r.json()}\nURL: {r.url}")
+            r.raise_for_status()
+        return r
+    
     def _execute_http_post_requests_from_json_file(self,
                                                    json_file_path: str,
                                                    api_action: str,

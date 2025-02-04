@@ -1,3 +1,6 @@
+.PHONY: all
+all: format lint type-check
+
 .PHONY: setup
 setup:
 	[ -f requirements.txt ] && pip install -r requirements.txt; \
@@ -14,7 +17,7 @@ setup-dev:
 pin:
 	pip-compile --output-file=requirements.txt pyproject.toml
 	pip-compile --extra=dev --output-file=dev-requirements.txt pyproject.toml
-	
+
 .PHONY: pin-upgrade
 pin-upgrade:
 	pip-compile --upgrade --output-file=requirements.txt pyproject.toml
@@ -25,28 +28,23 @@ sync:
 	pip-sync dev-requirements.txt requirements.txt
 	pip install -e ".[dev]"
 
-.PHONY: all
-all: format lint type-check
-
 .PHONY: format
 format:
-	isort .
-	yapf --recursive -i -p .
+	ruff format
 
 .PHONY: lint
 lint:
-	flake8 .
-	pylint $$(git ls-files "*.py")
+	ruff check
 
 .PHONY: lint-cached
 lint-cached:
 	git_files=$$(git --no-pager diff --cached --name-only | grep \.py$$); \
-	[ -z "$$git_files" ] || (flake8 $$git_files && pylint $$git_files)
+	[ -z "$$git_files" ] || (ruff check $$git_files)
 
 .PHONY: format-cached
 format-cached:
 	git_files=$$(git --no-pager diff --cached --name-only | grep \.py$$); \
-	[ -z "$$git_files" ] || (isort $$git_files && yapf -i -p $$git_files)
+	[ -z "$$git_files" ] || (ruff format $$git_files)
 
 .PHONY: test
 test:

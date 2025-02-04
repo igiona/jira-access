@@ -54,7 +54,7 @@ class JiraClient:
                                             headers=headers,
                                             auth=self._auth,
                                             timeout=self._REQUEST_TIMEOUT_SEC,
-                                            stream=True)
+                                            stream=stream)
 
         if not r.ok:
             if r.status_code == 400:
